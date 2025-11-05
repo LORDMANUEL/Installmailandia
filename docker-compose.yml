@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  mailserver:
+    image: mailserver/docker-mailserver:latest
+    container_name: mailserver
+    hostname: mail.example.com # Cambiar por tu dominio
+    ports:
+      - "25:25"    # SMTP
+      - "143:143"  # IMAP
+      - "465:465"  # SMTPS
+      - "587:587"  # MSA
+      - "993:993"  # IMAPS
+    volumes:
+      - ./data/mail-data:/var/mail
+      - ./data/mail-state:/var/mail-state
+      - ./data/mail-logs:/var/log/mail
+      - ./config:/tmp/docker-mailserver/
+    environment:
+      - ENABLE_SPAMASSASSIN=true
+      - ENABLE_CLAMAV=true
+      - ENABLE_POSTGREY=true
+      - ONE_DIR=1
+      - TZ=Etc/UTC
+    cap_add:
+      - NET_ADMIN
+      - SYS_PTRACE
+    networks:
+      - mail-network
+    restart: always
+
+  webmail:
+    image: djmaze/snappymail:latest
+    container_name: snappymail
+    ports:
+      - "8080:80" # Acceso a SnappyMail
+    volumes:
+      - ./data/snappymail-data:/var/www/snappymail/data
+    networks:
+      - mail-network
+    restart: always
+
+networks:
+  mail-network:
+    driver: bridge

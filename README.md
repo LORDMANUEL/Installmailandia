@@ -50,7 +50,10 @@ El objetivo es tener un servidor de correo funcional que pueda enviar y recibir 
 - **Cifrado:** Configuración automática de TLS con Let's Encrypt.
 
 ### Fase 3: Herramientas de Colaboración (Groupware)
-- **Calendario y Contactos (CalDAV/CardDAV):** Integración con servidores como Baïkal o SOGo.
+- **Calendario y Contactos (CalDAV/CardDAV):** Integrado con **Baïkal**.
+  - Para configurar tus calendarios y contactos, accede a la interfaz de administración de Baïkal en `http://<IP_DEL_SERVIDOR>:8081`.
+  - La primera vez que accedas, sigue el asistente de instalación.
+  - Podrás crear usuarios y compartir calendarios y libretas de direcciones.
 - **Chat Integrado:** Servidor XMPP (Prosody o Ejabberd).
 - **Videollamadas:** Integración de Jitsi Meet.
 

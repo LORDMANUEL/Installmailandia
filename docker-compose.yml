@@ -42,6 +42,17 @@ services:
       - mail-network
     restart: always
 
+  baikal:
+    image: ckulka/baikal:latest
+    container_name: baikal
+    ports:
+      - "8081:80" # Acceso a Baïkal
+    volumes:
+      - ./data/baikal-data:/var/www/baikal/Specific
+    networks:
+      - mail-network
+    restart: always
+
 networks:
   mail-network:
     driver: bridge

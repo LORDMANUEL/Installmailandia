@@ -16,7 +16,9 @@ services:
       - ./data/mail-state:/var/mail-state
       - ./data/mail-logs:/var/log/mail
       - ./config:/tmp/docker-mailserver/
+      - ./letsencrypt:/etc/letsencrypt
     environment:
+      - SSL_TYPE=letsencrypt
       - ENABLE_SPAMASSASSIN=true
       - ENABLE_CLAMAV=true
       - ENABLE_POSTGREY=true

@@ -12,6 +12,30 @@ La arquitectura se basa en microservicios contenerizados utilizando **Docker** y
 - **Escalabilidad:** Se pueden escalar componentes individuales según sea necesario.
 - **Facilidad de instalación:** Un simple `docker-compose up` es suficiente para levantar todo el stack.
 
+## Puesta en Marcha
+
+1.  **Configurar el Dominio:**
+    - Antes de iniciar, abre el archivo `docker-compose.yml`.
+    - Busca la línea `hostname: mail.example.com` y reemplázala con tu propio dominio de correo (ej. `mail.tudominio.com`). Este FQDN (Fully Qualified Domain Name) es esencial para que el servidor se identifique correctamente.
+
+2.  **Generar Certificados SSL con Let's Encrypt:**
+    - Para asegurar las conexiones, el servidor está configurado para usar certificados de Let's Encrypt.
+    - Necesitas generar estos certificados antes de iniciar el servidor por primera vez. Para ello, puedes usar Certbot en un contenedor de Docker. Asegúrate de que el puerto 80 no esté en uso.
+    - Ejecuta el siguiente comando, reemplazando `mail.tudominio.com` con tu FQDN:
+      ```bash
+      sudo docker run --rm -it \
+        -v "$(pwd)/letsencrypt:/etc/letsencrypt" \
+        -p 80:80 \
+        certbot/certbot certonly --standalone -d mail.tudominio.com
+      ```
+    - Este comando guardará los certificados en el directorio `letsencrypt`, que será utilizado por el contenedor del servidor de correo.
+
+3.  **Iniciar el Servidor:**
+    - Una vez configurado el dominio y generados los certificados, inicia el stack con:
+      ```bash
+      sudo docker compose up -d
+      ```
+
 ## Fases del Proyecto
 
 ### Fase 1: El Núcleo del Servidor de Correo

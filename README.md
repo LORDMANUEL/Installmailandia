@@ -14,27 +14,34 @@ La arquitectura se basa en microservicios contenerizados utilizando **Docker** y
 
 ## Puesta en Marcha
 
-1.  **Configurar el Dominio:**
-    - Antes de iniciar, abre el archivo `docker-compose.yml`.
-    - Busca la línea `hostname: mail.example.com` y reemplázala con tu propio dominio de correo (ej. `mail.tudominio.com`). Este FQDN (Fully Qualified Domain Name) es esencial para que el servidor se identifique correctamente.
+Este proyecto utiliza un script para automatizar la configuración. El proceso es muy simple:
 
-2.  **Generar Certificados SSL con Let's Encrypt:**
-    - Para asegurar las conexiones, el servidor está configurado para usar certificados de Let's Encrypt.
-    - Necesitas generar estos certificados antes de iniciar el servidor por primera vez. Para ello, puedes usar Certbot en un contenedor de Docker. Asegúrate de que el puerto 80 no esté en uso.
-    - Ejecuta el siguiente comando, reemplazando `mail.tudominio.com` con tu FQDN:
-      ```bash
-      sudo docker run --rm -it \
-        -v "$(pwd)/letsencrypt:/etc/letsencrypt" \
-        -p 80:80 \
-        certbot/certbot certonly --standalone -d mail.tudominio.com
-      ```
-    - Este comando guardará los certificados en el directorio `letsencrypt`, que será utilizado por el contenedor del servidor de correo.
+**Paso 1: Configurar tu Dominio y Email**
 
-3.  **Iniciar el Servidor:**
-    - Una vez configurado el dominio y generados los certificados, inicia el stack con:
-      ```bash
-      sudo docker compose up -d
-      ```
+1.  Copia la plantilla de configuración:
+    ```bash
+    cp .env.example .env
+    ```
+2.  Abre el archivo `.env` y configura las siguientes variables:
+    *   `FQDN`: Tu dominio de correo real (ej. `mail.tudominio.com`).
+    *   `LETSENCRYPT_EMAIL`: Tu dirección de email, para notificaciones de Let's Encrypt.
+
+**Paso 2: Ejecutar el Asistente de Instalación**
+
+Este script configurará los servicios, obtendrá los certificados SSL, iniciará el servidor y te guiará para crear tu primera cuenta de correo.
+
+```bash
+./setup.sh
+```
+
+¡Eso es todo! Una vez que el script finalice, tus servicios estarán disponibles en `https://tudominio.com` (webmail) y `https://dav.tudominio.com` (calendarios/contactos).
+
+---
+
+## Limitaciones Conocidas y Próximos Pasos
+
+*   **Sistema de Usuarios No Unificado:** Actualmente, cada servicio (correo, chat, calendarios) tiene su propio sistema de usuarios. Debes crear cuentas por separado en cada uno. El gran objetivo de la **Fase 4** es integrar un sistema de autenticación centralizada (probablemente con LDAP) para solucionar esto.
+*   **DNS:** Para que el correo funcione correctamente en Internet, debes configurar los registros DNS de tu dominio (MX, SPF, DKIM, DMARC). Consulta la documentación de `docker-mailserver` para obtener guías detalladas.
 
 ## Fases del Proyecto
 
@@ -54,8 +61,10 @@ El objetivo es tener un servidor de correo funcional que pueda enviar y recibir 
   - Para configurar tus calendarios y contactos, accede a la interfaz de administración de Baïkal en `http://<IP_DEL_SERVIDOR>:8081`.
   - La primera vez que accedas, sigue el asistente de instalación.
   - Podrás crear usuarios y compartir calendarios y libretas de direcciones.
-- **Chat Integrado:** Servidor XMPP (Prosody o Ejabberd).
-- **Videollamadas:** Integración de Jitsi Meet.
+- **Chat Integrado:** Integrado con **Prosody (XMPP)**.
+  - El servidor de chat está configurado para permitir el registro de usuarios directamente desde un cliente XMPP compatible (como Gajim o Conversations). Conéctate a tu servidor y busca la opción "Registrar nueva cuenta".
+  - Para conectar tu cliente, utiliza tu FQDN (ej. `mail.tudominio.com`) como dominio y el puerto 5222.
+- **Videollamadas:** Integración de Jitsi Meet (Planificado).
 
 ### Fase 4: Automatización y Panel de Administración Web
 - **Panel de Administración:** Una interfaz web para gestionar usuarios, dominios, backups y ver el estado del servidor.

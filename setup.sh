@@ -71,13 +71,36 @@ sudo docker compose up -d
 
 echo "¡Servicios iniciados!"
 
-# --- Creación de la primera cuenta de correo ---
-echo "--- Creando la primera cuenta de correo... ---"
-read -p "Introduce el nombre de usuario para tu primera cuenta de correo (ej. 'admin' para admin@$FQDN): " EMAIL_USER
+# --- Creación del primer usuario en LDAP ---
+echo "--- Creando el primer usuario en LDAP... ---"
+read -p "Introduce el nombre de usuario para tu primera cuenta (ej. 'admin'): " USERNAME
+read -s -p "Introduce la contraseña para este usuario: " PASSWORD
+echo
 
-sudo docker exec -ti mailserver setup email add "$EMAIL_USER@$FQDN"
+# Generar el archivo ldif del usuario a partir de la plantilla
+LDAP_USER_TPL="config/ldap/user.ldif.tpl"
+LDAP_USER_OUT="/tmp/user.ldif" # Usar un directorio temporal
 
-echo "¡Cuenta de correo '$EMAIL_USER@$FQDN' creada con éxito!"
+sed -e "s/%%USERNAME%%/$USERNAME/g" \
+    -e "s/%%EMAIL%%/$USERNAME@$LDAP_DOMAIN/g" \
+    -e "s,{{ LDAP_SEARCH_BASE }},$LDAP_SEARCH_BASE,g" \
+    -e "s/%%PASSWORD%%/$PASSWORD/g" \
+    "$LDAP_USER_TPL" > "$LDAP_USER_OUT"
+
+echo "Esperando a que el servidor LDAP esté listo..."
+# Bucle para esperar a que LDAP esté disponible
+until sudo docker exec openldap ldapsearch -x -H ldap://localhost -b "$LDAP_SEARCH_BASE" -D "$LDAP_BIND_DN" -w "$LDAP_ADMIN_PASSWORD" > /dev/null 2>&1; do
+    echo "Esperando a OpenLDAP..."
+    sleep 2
+done
+
+# Añadir el usuario al directorio LDAP usando stdin
+cat "$LDAP_USER_OUT" | sudo docker exec -i openldap ldapadd -x -D "$LDAP_BIND_DN" -w "$LDAP_ADMIN_PASSWORD"
+
+echo "¡Usuario '$USERNAME@$LDAP_DOMAIN' creado con éxito en LDAP!"
+
+# Limpiar el ldif generado
+rm "$LDAP_USER_OUT"
 
 # --- Mensaje Final ---
 echo ""

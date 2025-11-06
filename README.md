@@ -40,7 +40,7 @@ Este script configurará los servicios, obtendrá los certificados SSL, iniciar�
 
 ## Limitaciones Conocidas y Próximos Pasos
 
-*   **Sistema de Usuarios No Unificado:** Actualmente, cada servicio (correo, chat, calendarios) tiene su propio sistema de usuarios. Debes crear cuentas por separado en cada uno. El gran objetivo de la **Fase 4** es integrar un sistema de autenticación centralizada (probablemente con LDAP) para solucionar esto.
+*   **Sistema de Usuarios Parcialmente Unificado:** Hemos dado el primer paso hacia una autenticación centralizada con OpenLDAP. Actualmente, el **servidor de correo** utiliza LDAP para la autenticación de usuarios. Sin embargo, los servicios de **Chat (Prosody)** y **Calendarios (Baïkal)** todavía utilizan sus propias bases de datos de usuarios. La unificación completa de todos los servicios con LDAP es el principal objetivo de la Fase 4.
 *   **DNS:** Para que el correo funcione correctamente en Internet, debes configurar los registros DNS de tu dominio (MX, SPF, DKIM, DMARC). Consulta la documentación de `docker-mailserver` para obtener guías detalladas.
 
 ## Fases del Proyecto
@@ -65,7 +65,8 @@ El objetivo es tener un servidor de correo funcional que pueda enviar y recibir 
   - Para conectar tu cliente, utiliza tu FQDN (ej. `mail.tudominio.com`) como dominio y el puerto 5222.
 - **Videollamadas:** Integración de Jitsi Meet (Planificado).
 
-### Fase 4: Automatización y Panel de Administración Web
+### Fase 4: Autenticación Centralizada y Panel de Administración
+- **Autenticación Centralizada (En Progreso):** Se ha implementado OpenLDAP como base. El servidor de correo ya lo utiliza. El objetivo principal de esta fase es migrar el resto de servicios (Prosody, Baïkal, etc.) para que se autentiquen contra LDAP.
 - **Panel de Administración:** Una interfaz web para gestionar usuarios, dominios, backups y ver el estado del servidor.
 - **Instalador Web:** Un asistente de configuración inicial que guíe al usuario en la elección de componentes y la configuración inicial.
 

@@ -15,6 +15,8 @@ services:
     networks:
       - mail-network
     restart: always
+    depends_on:
+      - openldap
 
   # --- Servidor de Correo (Postfix, Dovecot, etc.) ---
   mailserver:
@@ -34,6 +36,13 @@ services:
       - ./config:/tmp/docker-mailserver/
       - ./letsencrypt:/etc/letsencrypt
     environment:
+      - ACCOUNT_PROVISIONER=LDAP
+      - LDAP_SERVER_HOST=ldap.${FQDN}
+      - LDAP_SEARCH_BASE=${LDAP_SEARCH_BASE}
+      - LDAP_BIND_DN=${LDAP_BIND_DN}
+      - LDAP_BIND_PW=${LDAP_ADMIN_PASSWORD}
+      - DOVECOT_USER_FILTER=(&(objectClass=inetOrgPerson)(mail=%u))
+      - DOVECOT_PASS_FILTER=(&(objectClass=inetOrgPerson)(mail=%u))
       - SSL_TYPE=letsencrypt
       - ENABLE_SPAMASSASSIN=true
       - ENABLE_CLAMAV=true
@@ -91,6 +100,23 @@ services:
       - ./config/prosody/prosody.cfg.lua:/etc/prosody/prosody.cfg.lua
       - ./data/prosody:/var/lib/prosody
       - ./letsencrypt:/etc/letsencrypt:ro
+    networks:
+      - mail-network
+    restart: always
+
+  # --- Autenticación Centralizada (OpenLDAP) ---
+  openldap:
+    image: osixia/openldap:1.5.0
+    container_name: openldap
+    hostname: ldap.${FQDN}
+    environment:
+      - LDAP_ORGANISATION=${FQDN}
+      - LDAP_DOMAIN=${LDAP_DOMAIN}
+      - LDAP_ADMIN_PASSWORD=${LDAP_ADMIN_PASSWORD}
+    volumes:
+      - ./data/ldap:/var/lib/ldap
+      - ./config/ldap/slapd.d:/etc/ldap/slapd.d
+      - ./config/ldap/bootstrap:/container/service/slapd/assets/config/bootstrap/ldif/custom
     networks:
       - mail-network
     restart: always

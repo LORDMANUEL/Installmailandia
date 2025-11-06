@@ -58,9 +58,8 @@ El objetivo es tener un servidor de correo funcional que pueda enviar y recibir 
 
 ### Fase 3: Herramientas de Colaboración (Groupware)
 - **Calendario y Contactos (CalDAV/CardDAV):** Integrado con **Baïkal**.
-  - Para configurar tus calendarios y contactos, accede a la interfaz de administración de Baïkal en `http://<IP_DEL_SERVIDOR>:8081`.
-  - La primera vez que accedas, sigue el asistente de instalación.
-  - Podrás crear usuarios y compartir calendarios y libretas de direcciones.
+  - Puedes acceder a la interfaz de administración de Baïkal en `https://dav.TU_FQDN/admin`.
+  - La primera vez que accedas, sigue el asistente de instalación para configurar la base de datos y tu usuario administrador.
 - **Chat Integrado:** Integrado con **Prosody (XMPP)**.
   - El servidor de chat está configurado para permitir el registro de usuarios directamente desde un cliente XMPP compatible (como Gajim o Conversations). Conéctate a tu servidor y busca la opción "Registrar nueva cuenta".
   - Para conectar tu cliente, utiliza tu FQDN (ej. `mail.tudominio.com`) como dominio y el puerto 5222.

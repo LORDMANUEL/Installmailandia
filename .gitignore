@@ -4,3 +4,4 @@
 # Archivos de configuración generados dinámicamente
 config/prosody/*.lua
 config/traefik/*.yml
+config/ldap/bootstrap/*.ldif

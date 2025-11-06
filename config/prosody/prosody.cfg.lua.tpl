@@ -23,8 +23,19 @@ modules_enabled = {
     "csi"; -- Indicadores de estado del cliente
 }
 
--- Permitir el registro de nuevas cuentas a través del cliente.
-allow_registration = true;
+-- Configuración de autenticación LDAP
+authentication = "ldap2"
+
+ldap = {
+    hostname = "ldap.%%FQDN%%",
+    basedn = "%%LDAP_SEARCH_BASE%%",
+    -- El DN de enlace y la contraseña serán gestionados por variables de entorno
+    -- en el docker-compose para mayor seguridad.
+    user = {
+        filter = "(&(objectClass=inetOrgPerson)(uid=%%user%%))",
+        usernamefield = "uid"
+    }
+}
 
 -- Ruta de los certificados SSL (usaremos los de Let's Encrypt del servidor de correo)
 -- NOTA: Esto requiere compartir el volumen de letsencrypt con este contenedor.

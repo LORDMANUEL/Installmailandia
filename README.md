@@ -40,7 +40,7 @@ Este script configurará los servicios, obtendrá los certificados SSL, iniciar�
 
 ## Limitaciones Conocidas y Próximos Pasos
 
-*   **Sistema de Usuarios Parcialmente Unificado:** Hemos dado el primer paso hacia una autenticación centralizada con OpenLDAP. Actualmente, el **servidor de correo** utiliza LDAP para la autenticación de usuarios. Sin embargo, los servicios de **Chat (Prosody)** y **Calendarios (Baïkal)** todavía utilizan sus propias bases de datos de usuarios. La unificación completa de todos los servicios con LDAP es el principal objetivo de la Fase 4.
+*   **Sistema de Usuarios Parcialmente Unificado:** La autenticación centralizada con OpenLDAP está en progreso. Actualmente, el **servidor de correo** y el **servidor de chat (Prosody)** utilizan LDAP. Sin embargo, el servicio de **Calendarios (Baïkal)** todavía utiliza su propia base de datos de usuarios. La migración de Baïkal a LDAP es el siguiente paso pendiente.
 *   **DNS:** Para que el correo funcione correctamente en Internet, debes configurar los registros DNS de tu dominio (MX, SPF, DKIM, DMARC). Consulta la documentación de `docker-mailserver` para obtener guías detalladas.
 
 ## Fases del Proyecto
@@ -61,7 +61,7 @@ El objetivo es tener un servidor de correo funcional que pueda enviar y recibir 
   - Puedes acceder a la interfaz de administración de Baïkal en `https://dav.TU_FQDN/admin`.
   - La primera vez que accedas, sigue el asistente de instalación para configurar la base de datos y tu usuario administrador.
 - **Chat Integrado:** Integrado con **Prosody (XMPP)**.
-  - El servidor de chat está configurado para permitir el registro de usuarios directamente desde un cliente XMPP compatible (como Gajim o Conversations). Conéctate a tu servidor y busca la opción "Registrar nueva cuenta".
+  - El servidor de chat utiliza **autenticación LDAP**. Los usuarios creados en LDAP pueden iniciar sesión con su cliente de chat favorito.
   - Para conectar tu cliente, utiliza tu FQDN (ej. `mail.tudominio.com`) como dominio y el puerto 5222.
 - **Videollamadas:** Integración de Jitsi Meet (Planificado).
 

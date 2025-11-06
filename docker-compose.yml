@@ -15,8 +15,6 @@ services:
     networks:
       - mail-network
     restart: always
-    depends_on:
-      - openldap
 
   # --- Servidor de Correo (Postfix, Dovecot, etc.) ---
   mailserver:
@@ -55,6 +53,8 @@ services:
     networks:
       - mail-network
     restart: always
+    depends_on:
+      - openldap
 
   # --- Webmail (SnappyMail) ---
   webmail:
@@ -93,6 +93,10 @@ services:
   prosody:
     image: tobi312/prosody:latest
     container_name: prosody
+    environment:
+      - SELECT_COMMUNITY_MODULES=mod_auth_ldap2
+      - LDAP_BIND_DN=${LDAP_BIND_DN}
+      - LDAP_BIND_PW=${LDAP_ADMIN_PASSWORD}
     ports:
       - "5222:5222"
       - "5269:5269"
@@ -103,6 +107,8 @@ services:
     networks:
       - mail-network
     restart: always
+    depends_on:
+      - openldap
 
   # --- Autenticación Centralizada (OpenLDAP) ---
   openldap:

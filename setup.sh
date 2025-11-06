@@ -40,8 +40,10 @@ if [ ! -f $PROSODY_CONFIG_TPL ]; then
     exit 1
 fi
 
-# Reemplaza el placeholder del dominio en la plantilla y crea el archivo de configuración final.
-sed "s/%%FQDN%%/$FQDN/g" "$PROSODY_CONFIG_TPL" > "$PROSODY_CONFIG_OUT"
+# Reemplaza los placeholders en la plantilla y crea el archivo de configuración final.
+sed -e "s/%%FQDN%%/$FQDN/g" \
+    -e "s/%%LDAP_SEARCH_BASE%%/$LDAP_SEARCH_BASE/g" \
+    "$PROSODY_CONFIG_TPL" > "$PROSODY_CONFIG_OUT"
 echo "Archivo de configuración de Prosody generado en $PROSODY_CONFIG_OUT"
 
 # --- Configuración de Traefik (TLS) ---
@@ -50,6 +52,13 @@ TRAEFIK_DYN_CONFIG_TPL="config/traefik/dynamic_conf.yml.tpl"
 TRAEFIK_DYN_CONFIG_OUT="config/traefik/dynamic_conf.yml"
 sed "s/%%FQDN%%/$FQDN/g" "$TRAEFIK_DYN_CONFIG_TPL" > "$TRAEFIK_DYN_CONFIG_OUT"
 echo "Archivo de configuración dinámica de Traefik generado."
+
+# --- Configuración de LDAP (Bootstrap) ---
+echo "--- Configurando la estructura base de LDAP... ---"
+LDAP_BASE_TPL="config/ldap/bootstrap/00-base.ldif.tpl"
+LDAP_BASE_OUT="config/ldap/bootstrap/00-base.ldif"
+sed "s/%%LDAP_SEARCH_BASE%%/$LDAP_SEARCH_BASE/g" "$LDAP_BASE_TPL" > "$LDAP_BASE_OUT"
+echo "Archivo de bootstrap de LDAP generado."
 
 # --- Generación de Certificados SSL ---
 echo "--- Obteniendo certificados SSL con Let's Encrypt... ---"

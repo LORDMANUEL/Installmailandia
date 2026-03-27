@@ -1,0 +1,7 @@
+# Archivos de entorno - ¡No subir al control de versiones!
+.env
+
+# Archivos de configuración generados dinámicamente
+config/prosody/*.lua
+config/traefik/*.yml
+config/ldap/bootstrap/*.ldif

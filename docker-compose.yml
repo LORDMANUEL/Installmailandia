@@ -1,0 +1,132 @@
+version: '3.8'
+
+services:
+  # --- Reverse Proxy (Traefik) ---
+  traefik:
+    image: traefik:v2.11
+    container_name: traefik
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config/traefik/:/etc/traefik/:ro
+      - ./letsencrypt:/etc/letsencrypt:ro
+    networks:
+      - mail-network
+    restart: always
+
+  # --- Servidor de Correo (Postfix, Dovecot, etc.) ---
+  mailserver:
+    image: mailserver/docker-mailserver:latest
+    container_name: mailserver
+    hostname: ${FQDN}
+    ports:
+      - "25:25"
+      - "143:143"
+      - "465:465"
+      - "587:587"
+      - "993:993"
+    volumes:
+      - ./data/mail-data:/var/mail
+      - ./data/mail-state:/var/mail-state
+      - ./data/mail-logs:/var/log/mail
+      - ./config:/tmp/docker-mailserver/
+      - ./letsencrypt:/etc/letsencrypt
+    environment:
+      - ACCOUNT_PROVISIONER=LDAP
+      - LDAP_SERVER_HOST=ldap.${FQDN}
+      - LDAP_SEARCH_BASE=${LDAP_SEARCH_BASE}
+      - LDAP_BIND_DN=${LDAP_BIND_DN}
+      - LDAP_BIND_PW=${LDAP_ADMIN_PASSWORD}
+      - DOVECOT_USER_FILTER=(&(objectClass=inetOrgPerson)(mail=%u))
+      - DOVECOT_PASS_FILTER=(&(objectClass=inetOrgPerson)(mail=%u))
+      - SSL_TYPE=letsencrypt
+      - ENABLE_SPAMASSASSIN=true
+      - ENABLE_CLAMAV=true
+      - ENABLE_POSTGREY=true
+      - ONE_DIR=1
+      - TZ=Etc/UTC
+    cap_add:
+      - NET_ADMIN
+      - SYS_PTRACE
+    networks:
+      - mail-network
+    restart: always
+    depends_on:
+      - openldap
+
+  # --- Webmail (SnappyMail) ---
+  webmail:
+    image: djmaze/snappymail:latest
+    container_name: snappymail
+    volumes:
+      - ./data/snappymail-data:/var/www/snappymail/data
+      - ./config/snappymail/default.ini:/var/www/snappymail/data/_data_/_default_/domains/default.ini
+    networks:
+      - mail-network
+    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.webmail.rule=Host(`${FQDN}`)"
+      - "traefik.http.routers.webmail.entrypoints=websecure"
+      - "traefik.http.routers.webmail.tls=true"
+      - "traefik.http.services.webmail.loadbalancer.server.port=80"
+
+  # --- Calendarios y Contactos (Baïkal) ---
+  baikal:
+    image: ckulka/baikal:latest
+    container_name: baikal
+    volumes:
+      - ./data/baikal-data:/var/www/baikal/Specific
+    networks:
+      - mail-network
+    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.baikal.rule=Host(`dav.${FQDN}`)"
+      - "traefik.http.routers.baikal.entrypoints=websecure"
+      - "traefik.http.routers.baikal.tls=true"
+      - "traefik.http.services.baikal.loadbalancer.server.port=80"
+
+  # --- Chat (Prosody) ---
+  prosody:
+    image: tobi312/prosody:latest
+    container_name: prosody
+    environment:
+      - SELECT_COMMUNITY_MODULES=mod_auth_ldap2
+      - LDAP_BIND_DN=${LDAP_BIND_DN}
+      - LDAP_BIND_PW=${LDAP_ADMIN_PASSWORD}
+    ports:
+      - "5222:5222"
+      - "5269:5269"
+    volumes:
+      - ./config/prosody/prosody.cfg.lua:/etc/prosody/prosody.cfg.lua
+      - ./data/prosody:/var/lib/prosody
+      - ./letsencrypt:/etc/letsencrypt:ro
+    networks:
+      - mail-network
+    restart: always
+    depends_on:
+      - openldap
+
+  # --- Autenticación Centralizada (OpenLDAP) ---
+  openldap:
+    image: osixia/openldap:1.5.0
+    container_name: openldap
+    hostname: ldap.${FQDN}
+    environment:
+      - LDAP_ORGANISATION=${FQDN}
+      - LDAP_DOMAIN=${LDAP_DOMAIN}
+      - LDAP_ADMIN_PASSWORD=${LDAP_ADMIN_PASSWORD}
+    volumes:
+      - ./data/ldap:/var/lib/ldap
+      - ./config/ldap/slapd.d:/etc/ldap/slapd.d
+      - ./config/ldap/bootstrap:/container/service/slapd/assets/config/bootstrap/ldif/custom
+    networks:
+      - mail-network
+    restart: always
+
+networks:
+  mail-network:
+    driver: bridge
